@@ -4,6 +4,7 @@
 ``` bash
 rosdep update --include-eol-distros
 sudo apt-get install freeglut3 freeglut3-dev
+sudo apt-get install ros-indigo-keyboard
 ```
 
 ###Installation 
