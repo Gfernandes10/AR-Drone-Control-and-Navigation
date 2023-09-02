@@ -1,0 +1,8 @@
+<!-- Example.launch -->
+<launch>
+  <!-- Start a ROS node -->
+  <node name="keyboard" pkg="keyboard" type="keyboard">
+  </node>
+    <node name="lqr" pkg="controllers" type="lqr.py" output="screen">
+    </node>
+</launch>

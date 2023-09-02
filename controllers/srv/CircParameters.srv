@@ -1,0 +1,7 @@
+# Request: reference pose
+float32 radius
+float32 angular_velocity
+float32 height
+---
+# Responce: ok | ko
+bool status
