@@ -1,13 +1,15 @@
 # AR-Drone-Control-and-Navigation
 
-###Dependencies 
+## Dependencies 
 ``` bash
 rosdep update --include-eol-distros
 sudo apt-get install freeglut3 freeglut3-dev
 sudo apt-get install ros-indigo-keyboard
+sudo apt-get install ros-indigo-turtlebot-gazebo
+sudo apt-get install ros-indigo-hector-gazebo-worlds
 ```
 
-###Installation 
+## Installation 
 ``` bash
 cd catkin_ws/src
 git clone https://github.com/Gfernandes10/tum_ardrone.git
@@ -19,7 +21,7 @@ rosdep install tum_ardrone
 rosdep install --from-paths src --ignore-src --rosdistro indigo -y
 catkin_make
 ```
-###Simulation
+## Simulation
 To initialize the simulation and the navigation system use the command bellow in a terminal
 ``` bash
 roslaunch controllers simulator.launch 
@@ -38,24 +40,27 @@ Through this window you can intialize the controller. You need to send a command
 
 When you initialize the controller it will automatically set the desired position as: [x,y,z,heading] = [0,0,0.4,0].
 
-##Sending commands to the controller through ros services.
-Set reference:
+### Sending commands to the controller through ros services.
+**Set reference:**
+
 rosservice call /setref "x: 0.0
 y: 0.0
 z: 0.0
 heading: 0.0"
 
-Set circle command:
+**Set circle command:**
+
 rosservice call /circ "radius: 0.0
 angular_velocity: 0.0
 height: 0.0" 
 
-set lemniscate trajectory:
+**Set lemniscate trajectory:**
+
 rosservice call /inf
 
 You can stop the commands at anytime by pressing space while the popup window is selected.
 
-### Laboratory experiments
+## Laboratory experiments
 To test the controller in the real dorne you need to run 
 ``` bash
 roslaunch controllers ardrone_driver.launch
