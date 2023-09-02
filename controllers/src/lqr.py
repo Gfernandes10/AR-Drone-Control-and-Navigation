@@ -34,14 +34,15 @@ class ControllerNode:
         self.poseref_pub = rospy.Publisher('/poseref', poseref, queue_size=10)
         # Cria os objetos de inscrição nos tópicos /pose e /imu
         rospy.Subscriber('/ardrone/predictedPose', filter_state, self.pose_callback)
-        rospy.Subscriber('/ardrone/imu_throttle', Imu, self.imu_callback)
+        # rospy.Subscriber('/ardrone/imu_throttle', Imu, self.imu_callback)
+        rospy.Subscriber('/ardrone/imu', Imu, self.imu_callback)
         rospy.Subscriber('/keyboard/keydown', Key, self.keyboard_callback)
         # Define a frequência de publicação
-        self.rate = rospy.Rate(100) # 100 Hz,
+        self.rate = rospy.Rate(30) # 100 Hz,
         # Cria o serviço de definição de referência
         rospy.Service('setref', SetReference, self.set_reference)
         # Cria o serviço de trajetória circular
-        rospy.Service('circ', CircParameters, self.set_circ)        
+        rospy.Service('circ', CircParameters, self.set_circ)
         # Cria o serviço de trajetória infinito
         self.command_service_inf = rospy.Service('inf', Trigger, self.set_inf)
         # Cria o serviço de trajetória quadrática
@@ -64,7 +65,7 @@ class ControllerNode:
         self.dy = 0.0
         self.z = 0.0
         self.dz = 0.0
-        self.yaw = 0.0    
+        self.yaw = 0.0
         self.dyaw = 0.0
         self.Xstates = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.Posereal = [0,0,0,0]
@@ -139,7 +140,7 @@ class ControllerNode:
         self.dy = msg.dx
         self.z = msg.z
         self.dz = msg.dz
-        self.yaw = -angle_from_to_2(msg.yaw, -180, 180)*math.pi/180    
+        self.yaw = -angle_from_to_2(msg.yaw, -180, 180)*math.pi/180
         self.dyaw = -msg.dyaw*math.pi/180
         #//y yponto x xponto -theta -thetaponto -rolll -rollponto z zponto -yaw -yawponto ex ey ez -eyaw
     # Função de callback para o tópico /imu
@@ -165,7 +166,7 @@ class ControllerNode:
             pose_ref = poseref()
             while self.onoff:
                 controller.Xstates = [controller.pitch, controller.dpitch, controller.x, controller.dx, controller.roll, controller.droll, controller.y, controller.dy, controller.z, controller.dz, controller.yaw, controller.dyaw]
-                controller.Posereal = [controller.x, controller.y, controller.z, controller.yaw]                
+                controller.Posereal = [controller.x, controller.y, controller.z, controller.yaw]
                 if self.ref_service_called:
                     self.count = 0
                 elif self.circ_service_called:
@@ -176,18 +177,18 @@ class ControllerNode:
                     self.Poseref[0] = self.circ_radius*math.sin(theta)
                     self.Poseref[1] = self.circ_radius*math.cos(theta)
                     self.Poseref[2] = self.circ_z
-                    self.Poseref[3] = 0 
+                    self.Poseref[3] = 0
                 elif self.inf_service_called:
                     current_time = rospy.Time.now()
                     delta_t = (current_time - self.t).to_sec()
                     self.Poseref[0] = math.sin(0.05*delta_t)
                     self.Poseref[1] = 0.5*math.sin(0.1*delta_t)
                     self.Poseref[2] = 0.7 + 0.5*math.sin(0.05*delta_t)
-                    self.Poseref[3] = -(math.pi/12)*math.sin(0.05*delta_t) 
+                    self.Poseref[3] = -(math.pi/12)*math.sin(0.05*delta_t)
                     self.count = 0
-                elif self.quad_service_called: 
+                elif self.quad_service_called:
                     if self.count == 0:
-                        self.Poseref = [0,0,0.4,0] 
+                        self.Poseref = [0,0,0.4,0]
                     elif self.count == 1:
                         self.Poseref = [0,0.5,0.4,0]
                     elif self.count == 2:
@@ -197,13 +198,13 @@ class ControllerNode:
                     elif self.count == 4:
                         self.Poseref = [0,-0.5,0.7,0]
                     elif self.count == 5:
-                        self.Poseref = [0,-0.5,0.4,0]  
+                        self.Poseref = [0,-0.5,0.4,0]
                     elif self.count == 6:
-                        self.Poseref = [0,0,0.4,0] 
+                        self.Poseref = [0,0,0.4,0]
                 else:
                     self.Poseref = [0,0,0.4,0]
                     self.count = 0
-                
+
                 gainselect = "Rodrigo"
                 # gainselect = "simples"
                 # gainselect = "robusto"
@@ -213,25 +214,25 @@ class ControllerNode:
                     K = [[-3.06, -0.46, -3.12, -1.59, 0, 0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, -3.42, -0.48, 3.63, 1.64, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0, -5.15, -1.59, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.19, -0.08]] 
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.19, -0.08]]
                     Ki= [[2.86, 0, 0, 0],
                             [0,-3.43, 0, 0],
                             [0, 0, 4.47,0],
-                            [0, 0, 0, 1.0]] 
+                            [0, 0, 0, 1.0]]
                 elif gainselect == "simples":
                     K = [[-2.3300, -0.4578, -1.7240, -0.8035, 0, 0, 0, 0, 0, 0, 0, 0],
                          [0, 0, 0, 0, -2.3833, -0.6595, 1.4823, 0.7344, 0, 0, 0, 0],
                          [0, 0, 0, 0, 0, 0, 0, 0, -2.0816, -0.6692, 0, 0],
-                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.6427, -0.4653]] 
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.6427, -0.4653]]
                     Ki= [[0.7476, 0, 0, 0],
                          [0,-0.6028, 0, 0],
                          [0, 0, 1.0626,0],
-                         [0, 0, 0, 0.1387]] 
+                         [0, 0, 0, 0.1387]]
                 elif gainselect == "robusto":
                     K = [[-2.4496, -0.5186, -1.5088, -0.8481, 0, 0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, -2.9098, -0.9564, 1.4914, 0.8853, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0, -1.0574, -0.3941, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.9184, -0.1469]] 
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.9184, -0.1469]]
                     Ki= [[0.2587, 0, 0, 0],
                         [0,-0.2608, 0, 0],
                         [0, 0, 0.1973,0],
@@ -244,8 +245,8 @@ class ControllerNode:
                     Ki= [[0.2274, 0, 0, 0],
                         [0,-0.1666, 0, 0],
                         [0, 0, 0.9764,0],
-                        [0, 0, 0, 0.2774]] 
-  
+                        [0, 0, 0, 0.2774]]
+
                 Xstatesb = np.dot(K,controller.Xstates)
                 self.error = np.subtract(controller.Poseref, controller.Posereal)
 
@@ -257,14 +258,14 @@ class ControllerNode:
                         self.count += 1
                 else:
                     print('contador: ', self.count,'Tentando chegar nas posicoes: X = ', self.Poseref[0],' Y = ', self.Poseref[1] , ' Z = ', self.Poseref[2], ' Yaw = ', self.Poseref[3] )
-                    
+
                 self.error_integral += self.error*self.rate.sleep_dur.to_sec()
                 self.error_previous = self.error
                 self.error_Ki = np.dot(Ki,controller.error_integral)
                                 # Calcula as ações de controle
 
                 controller.u_control = controller.error_Ki + Xstatesb
-        
+
                 if self.u_control[0] > 1:
                     self.error_integral[0] = 0.9*self.error_integral[0]
                     # self.u_control[0] = 1
@@ -289,13 +290,13 @@ class ControllerNode:
                 if self.u_control[3] < -1:
                     self.error_integral[3] = 0.9*self.error_integral[3]
                     # self.u_control[3] = -1
-                
+
 
                 vel_cmd.linear.x = (controller.u_control[0]*math.cos(controller.yaw) - controller.u_control[1]*math.sin(controller.yaw))
                 vel_cmd.linear.y = (controller.u_control[0]*math.sin(controller.yaw) + controller.u_control[1]*math.cos(controller.yaw))
                 vel_cmd.linear.z = controller.u_control[2]
                 vel_cmd.angular.z = controller.u_control[3]
-                
+
                 pose_ref.x = self.Poseref[0]
                 pose_ref.y = self.Poseref[1]
                 pose_ref.z = self.Poseref[2]
@@ -322,4 +323,3 @@ if __name__ == '__main__':
 
     except rospy.ROSInterruptException:
         pass
-
