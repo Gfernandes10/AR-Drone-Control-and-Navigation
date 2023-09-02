@@ -5,6 +5,8 @@
 rosdep update --include-eol-distros
 sudo apt-get install freeglut3 freeglut3-dev
 sudo apt-get install ros-indigo-keyboard
+sudo apt-get install ros-indigo-turtlebot-gazebo
+sudo apt-get install ros-indigo-hector-gazebo-worlds
 ```
 
 ## Installation 
