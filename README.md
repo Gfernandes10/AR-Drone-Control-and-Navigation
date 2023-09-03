@@ -67,4 +67,4 @@ roslaunch controllers ardrone_driver.launch
 roslaunch controllers tum_ardrone.launch
 ```
 
-ESCREVER SOBRE AUTOINIT
+In the tum_ardrone console send the Auto Init command to make the AR Drone take off and initialize PTAM. With PTAM successfully initialized run the controller in the same way it was done for the simulator. 
