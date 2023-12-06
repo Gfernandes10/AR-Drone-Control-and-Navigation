@@ -8,7 +8,6 @@ project(controllers)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  ardrone_autonomy
   cv_bridge
   geometry_msgs
   message_generation
